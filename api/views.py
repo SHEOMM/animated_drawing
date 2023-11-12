@@ -12,10 +12,13 @@ class AIGenerateViews(views.APIView):
         # must get encoded_data. not decoded data. may..be..?
         encoded_image = request.data.get('file')
         ts = str(time.time())
-        encoded_image.save(ts + '.png')
+        encoded_image.save(f'static/input/{ts}.png')
         # make subprocess in docker container have to option that "--cap-add=SYS_PRACTICE"
-        # it processes video in static/{ts}/video.gif
-        p = subprocess.run(["python3.8", "image_to_animation.py", "{ts}.png", 'static/{ts}'])
+        # it processes video in static/output/{ts}/video.gif
+        # if subprocess makes error in docker -> then just run image_to_animation function
 
+        p = subprocess.run(["python3.8", "../animated_drawing/AnimatedDrawings-main/examples/image_to_animation.py",
+                            f'static/input/{ts}.png', f'static/output/{ts}'])
+        # remove used file.
 
         return Response(status=status.HTTP_200_OK)
