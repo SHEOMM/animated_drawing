@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import boto3
@@ -15,6 +16,8 @@ def index():
     param = request.get_json()
     encoded_image = param['file']
     ts = str(time.time())
+    remove_list = []
+    response_dict = {}
 
     # make subprocess in docker container have to option that "--cap-add=SYS_PRACTICE"
     # it processes video in static/output/{ts}/video.gif
@@ -23,44 +26,36 @@ def index():
     #                     f'static/input/{ts}.png', f'static/output/{ts}'])
 
     encoded_image.save(f'static/input/{ts}.png')
+    remove_list.append(f'static/input/{ts}.png')
     s3_client = S3_CLIENT
-    # dab
-    image_to_animation(f'static/input/{ts}.png', f'static/output/{ts}/dab', 'config/motion/dab.yaml'
+
+    motion_list = ["dab", "jumping", "wave_hello", "jesse_dance"]
+
+    for motion in motion_list:
+        remove_list.append(upload_to_s3(s3_client, motion, ts))
+
+    for remove in remove_list:
+        os.remove(remove)
+
+    image_url = "https://little-studio.s3.amazonaws.com"
+
+    for motion in motion_list:
+        response_dict[motion] = f"{image_url}/drawings/{motion}/{ts}"
+
+    for remove in remove_list:
+        os.remove(remove)
+
+    return make_response(jsonify(response_dict), 200)
+
+
+def upload_to_s3(s3_client, motion: str, ts: str):
+    image_to_animation(f'static/input/{ts}.png', f'static/output/{ts}/{motion}', f'config/motion/{motion}.yaml'
                        , 'config/retarget/fair1_ppf.yaml')
-    dab_url = f"drawings/dab/{ts}"
-
-    dab = open(f'static/output/{ts}/dab/movie.gif', mode='r')
-    s3_client.upload_fileobj(dab.read(), 'little-studio', dab_url)
-
-    # jumping
-    image_to_animation(f'static/input/{ts}.png', f'static/output/{ts}/jumping', 'config/motion/jumping.yaml'
-                       , 'config/retarget/fair1_ppf.yaml')
-    jump_url = f"drawings/jump/{ts}"
-
-    jump = open(f'static/output/{ts}/jumping/movie.gif', mode='r')
-    s3_client.upload_fileobj(jump.read(), 'little-studio', jump_url)
-
-    # wave_hello
-    image_to_animation(f'static/input/{ts}.png', f'static/output/{ts}/wave_hello', 'config/motion/wave_hello.yaml'
-                       , 'config/retarget/fair1_ppf.yaml')
-    wave_hello_url = f"drawings/wave_hello/{ts}"
-
-    wave_hello = open(f'static/output/{ts}/wave_hello/movie.gif', mode='r')
-    s3_client.upload_fileobj(wave_hello.read(), 'little-studio', wave_hello_url)
-    # jesse_dance
-    image_to_animation(f'static/input/{ts}.png', f'static/output/{ts}/jesse_dance', 'config/motion/jesse_dance.yaml'
-                       , 'config/retarget/fair1_ppf.yaml')
-
-    jesse_dance_url = f"drawings/jesse_dance/{ts}"
-
-    jesse_dance = open(f'static/output/{ts}/jesse_dance/movie.gif', mode='r')
-    s3_client.upload_fileobj(jesse_dance.read(), 'little-studio', jesse_dance_url)
-    image_url = "https://little-studio.s3.amazonaws.com/"
-    data = {'dab': image_url + dab_url, 'jump': image_url + jump_url, 'wave_hello': image_url + wave_hello_url,
-            'jesse_dance': image_url+jesse_dance_url}
-
-    return make_response(jsonify(data), 200)
-
+    s3_url = f"drawings/{motion}/{ts}"
+    ai_generated_image = f'static/output/{ts}/{motion}/movie.gif'
+    gif = open(ai_generated_image, mode='r')
+    s3_client.upload_fileobj(gif.read(), 'little-studio', s3_url)
+    return ai_generated_image
 
 
 S3_CLIENT = boto3.client(
