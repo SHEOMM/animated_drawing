@@ -8,7 +8,7 @@ spec:
     - name: regcred
   containers:
   - name: server-run
-    image: registry.ferrari.snucse.org:30443/little-studio/server-run:1.0
+    image: registry.ferrari.snucse.org:30443/little-studio/server_run:2.0
     command: ["/bin/bash"]
     args: ["conda activate animated_drawings", "cd animated_drawing", "cd examples", "flask run"]
     ports:
@@ -26,6 +26,6 @@ spec:
       - containerPort: 8080
     resources:
       limits:
-        cpu: 16
+        cpu: 8
         memory: "32Gi"
         nvidia.com/gpu: 1
