@@ -1,23 +1,26 @@
+import base64
 import os
-import subprocess
-
 import boto3
-from flask import *
 import time
 
 from examples.image_to_animation import image_to_animation
 from config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+from PIL import Image
+from io import BytesIO
+from flask import *
 
 app = Flask(__name__)
 
 
-@app.route('', methods=['POST'])
+@app.route('/', methods=['POST'])
 def index():
     param = request.get_json()
-    encoded_image = param['file']
+
     ts = str(time.time())
     remove_list = []
     response_dict = {}
+    image = Image.open(BytesIO(base64.b64decode(param['file'])))
+    image.save(f'static/input/{ts}.png', "PNG")
 
     # make subprocess in docker container have to option that "--cap-add=SYS_PRACTICE"
     # it processes video in static/output/{ts}/video.gif
@@ -25,7 +28,6 @@ def index():
     # p = subprocess.run(["python3.8", "../animated_drawing/AnimatedDrawings-main/examples/image_to_animation.py",
     #                     f'static/input/{ts}.png', f'static/output/{ts}'])
 
-    encoded_image.save(f'static/input/{ts}.png')
     remove_list.append(f'static/input/{ts}.png')
     s3_client = S3_CLIENT
 
