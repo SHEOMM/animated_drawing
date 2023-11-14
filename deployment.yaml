@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: animated-drawings-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n201432420
+  template:
+    metadata:
+      labels:
+        app: n201432420
+    spec:
+      containers:
+        - name: api-service
+          image: registry.ferrari.snucse.org:30443/little-studio/server_run:2.0
+          ports:
+            - containerPort: 5000
+        - name: torchserve
+          image: registry.ferrari.snucse.org:30443/little-studio/torch_serve:latest
+          ports:
+            - containerPort: 8080
