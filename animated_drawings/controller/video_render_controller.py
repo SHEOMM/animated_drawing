@@ -28,10 +28,10 @@ NoneType = type(None)  # for type checking below
 class VideoRenderController(Controller):
     """ Video Render Controller is used to non-interactively generate a video file """
 
-    def __init__(self, cfg: ControllerConfig, scene: Scene, view: View) -> None:
+    def __init__(self, cfg: ControllerConfig, scene: Scene) -> None:
         super().__init__(cfg, scene)
 
-        self.view: View = view
+        # self.view: View = view
 
         self.scene: Scene = scene
 
@@ -44,7 +44,7 @@ class VideoRenderController(Controller):
 
         self.video_width: int
         self.video_height: int
-        self.video_width, self.video_height = self.view.get_framebuffer_size()
+        self.video_width, self.video_height = (50, 50) #self.view.get_framebuffer_size()
 
         self.video_writer: VideoWriter = VideoWriter.create_video_writer(self)
 
@@ -80,14 +80,14 @@ class VideoRenderController(Controller):
     def _is_run_over(self) -> bool:
         return self.frames_left_to_render == 0
 
-    def _start_run_loop_iteration(self) -> None:
-        self.view.clear_window()
+    # def _start_run_loop_iteration(self) -> None:
+        # self.view.clear_window()
 
     def _update(self) -> None:
         self.scene.update_transforms()
 
-    def _render(self) -> None:
-        self.view.render(self.scene)
+    # def _render(self) -> None:
+        # self.view.render(self.scene)
 
     def _tick(self) -> None:
         self.scene.progress_time(self.delta_t)
@@ -108,7 +108,7 @@ class VideoRenderController(Controller):
 
     def _cleanup_after_run_loop(self) -> None:
         logging.info(f'Rendered {self.frames_rendered} frames in {time.time()-self.run_loop_start_time} seconds.')
-        self.view.cleanup()
+        # self.view.cleanup()
 
         _time = time.time()
         self.video_writer.cleanup()
