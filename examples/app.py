@@ -33,7 +33,7 @@ def index():
     remove_file_list.append(f'{cur_path}/static/input/{ts}.png')
     s3_client = S3_CLIENT
 
-    motion_list = ["dab", "jumping", "wave_hello", "jesse_dance"]
+    motion_list = ["dab", "jumping", "wave_hello"] # , "jesse_dance"]
 
     print("here")
     for motion in motion_list:
@@ -50,6 +50,7 @@ def index():
     for remove in remove_file_list:
         os.remove(remove)
     for remove in remove_folder_list:
+        clear_directory(remove)
         os.rmdir(remove)
 
     print("last")
@@ -68,11 +69,14 @@ def upload_to_s3(s3_client, motion: str, ts: str, cur_path: str):
     print(s3_url)
     return ai_generated_image
 
-    # gif = open(ai_generated_image, mode='rb')
-    # s3_client.upload_fileobj(gif.read(), 'little-studio', s3_url)
-    # print(s3_url)
-    # return ai_generated_image
-
+def clear_directory(directory):
+    for item in os.listdir(directory):
+        item_path = os.path.join(directory, item)
+        if os.path.isfile(item_path):
+            os.remove(item_path)
+        elif os.path.isdir(item_path):
+            clear_directory(item_path)
+            os.rmdir(item_path)
 
 S3_CLIENT = boto3.client(
     's3',

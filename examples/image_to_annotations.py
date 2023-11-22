@@ -34,7 +34,7 @@ def image_to_annotations(img_fn: str, out_dir: str) -> None:
     # copy the original image into the output_dir
     cv2.imwrite(str(outdir/'image.png'), img)
 
-    print("part A")
+    print("Stage 1")
     # ensure it's rgb
     if len(img.shape) != 3:
         msg = f'image must have 3 channels (rgb). Found {len(img.shape)}'
@@ -54,7 +54,7 @@ def image_to_annotations(img_fn: str, out_dir: str) -> None:
         raise Exception(f"Failed to get bounding box, please check if the 'docker_torchserve' is running and healthy, resp: {resp}")
     print(resp)
     detection_results = json.loads(resp.content)
-    print("part b")
+    print("Stage 2")
     # error check detection_results
     if isinstance(detection_results, dict) and 'code' in detection_results.keys() and detection_results['code'] == 404:
         assert False, f'Error performing detection. Check that drawn_humanoid_detector.mar was properly downloaded. Response: {detection_results}'
@@ -62,7 +62,7 @@ def image_to_annotations(img_fn: str, out_dir: str) -> None:
     # order results by score, descending
     detection_results.sort(key=lambda x: x['score'], reverse=True)
 
-    print("part c")
+    print("Stage 3")
     # if no drawn humanoids detected, abort
     if len(detection_results) == 0:
         msg = 'Could not detect any drawn humanoids in the image. Aborting'
@@ -72,7 +72,7 @@ def image_to_annotations(img_fn: str, out_dir: str) -> None:
     # otherwise, report # detected and score of highest.
     msg = f'Detected {len(detection_results)} humanoids in image. Using detection with highest score {detection_results[0]["score"]}.'
     logging.info(msg)
-    print("part c-1")
+    print("Stage 4")
     # calculate the coordinates of the character bounding box
     bbox = np.array(detection_results[0]['bbox'])
     l, t, r, b = [round(x) for x in bbox]
@@ -91,14 +91,14 @@ def image_to_annotations(img_fn: str, out_dir: str) -> None:
 
     # get segmentation mask
     mask = segment(cropped)
-    print("part c-2")
+    print("Stage 5")
 
     # send cropped image to pose estimator
     data_file = {'data': cv2.imencode('.png', cropped)[1].tobytes()}
     resp = requests.post("http://localhost:8080/predictions/drawn_humanoid_pose_estimator", files=data_file, verify=False)
     if resp is None or resp.status_code >= 300:
         raise Exception(f"Failed to get skeletons, please check if the 'docker_torchserve' is running and healthy, resp: {resp}")
-    print("part c-3")
+    print("Stage 6")
     print(resp)
     pose_results = json.loads(resp.content)
 
@@ -111,13 +111,13 @@ def image_to_annotations(img_fn: str, out_dir: str) -> None:
         msg = 'Could not detect any skeletons within the character bounding box. Expected exactly 1. Aborting.'
         logging.critical(msg)
         assert False, msg
-    print("c-4")
+    print("Stage 7")
     # if more than one skeleton detected,
     if 1 < len(pose_results):
         msg = f'Detected {len(pose_results)} skeletons with the character bounding box. Expected exactly 1. Aborting.'
         logging.critical(msg)
         assert False, msg
-    print("part d")
+    print("Stage 8")
 
     # get x y coordinates of detection joint keypoints
     kpts = np.array(pose_results[0]['keypoints'])[:, :2]
@@ -154,7 +154,7 @@ def image_to_annotations(img_fn: str, out_dir: str) -> None:
     # dump character config to yaml
     with open(str(outdir/'char_cfg.yaml'), 'w') as f:
         yaml.dump(char_cfg, f)
-    print("part e")
+    print("Stage 9")
     # create joint viz overlay for inspection purposes
     joint_overlay = cropped.copy()
     for joint in skeleton:

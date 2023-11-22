@@ -15,7 +15,7 @@ def annotations_to_animation(char_anno_dir: str, motion_cfg_fn: str, retarget_cf
     Given a path to a directory with character annotations, a motion configuration file, and a retarget configuration file,
     creates an animation and saves it to {annotation_dir}/video.png
     """
-    print("part e")
+    print("Stage 10")
     # package character_cfg_fn, motion_cfg_fn, and retarget_cfg_fn
     animated_drawing_dict = {
         'character_cfg': str(Path(char_anno_dir, 'char_cfg.yaml').resolve()),
@@ -35,7 +35,7 @@ def annotations_to_animation(char_anno_dir: str, motion_cfg_fn: str, retarget_cf
     output_mvc_cfn_fn = str(Path(char_anno_dir, 'mvc_cfg.yaml'))
     with open(output_mvc_cfn_fn, 'w') as f:
         yaml.dump(dict(mvc_cfg), f)
-    print("part f")
+    print("Final stage")
     # render the video
     animated_drawings.render.start(output_mvc_cfn_fn)
 
