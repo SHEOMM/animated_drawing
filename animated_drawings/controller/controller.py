@@ -77,28 +77,22 @@ class Controller():
         """ The run loop. Subclassed controllers should overload and define functionality for each step in this function."""
 
         self._prep_for_run_loop()
-        while not self._is_run_over(): 
-            # self._start_run_loop_iteration()
+        while not self._is_run_over():
+            self._start_run_loop_iteration()
             self._update()
-            # self._render()
+            self._render()
             self._tick()
             # self._handle_user_input()
             self._finish_run_loop_iteration()
 
-        print("part D")
         self._cleanup_after_run_loop()
 
     @staticmethod
-    def create_controller(controller_cfg: ControllerConfig, scene: Scene) -> Controller:
+    def create_controller(controller_cfg: ControllerConfig, scene: Scene, view: View) -> Controller:
         """ Takes in a controller dictionary from mvc config file, scene, and view. Constructs and return appropriate controller."""
         if controller_cfg.mode == 'video_render':
             from animated_drawings.controller.video_render_controller import VideoRenderController
-            return VideoRenderController(controller_cfg, scene)
-        # elif controller_cfg.mode == 'interactive':
-            # from animated_drawings.controller.interactive_controller import InteractiveController
-            # from animated_drawings.view.window_view import WindowView
-            # assert isinstance(view, WindowView)  # for static analysis. checks elsewhere ensure this always passes
-            # return InteractiveController(controller_cfg, scene, view)
+            return VideoRenderController(controller_cfg, scene, view,)
         else:
             msg = f'Unknown controller mode specified: {controller_cfg.mode}'
             logging.critical(msg)
