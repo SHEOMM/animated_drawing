@@ -44,7 +44,7 @@ class VideoRenderController(Controller):
 
         self.video_width: int
         self.video_height: int
-        self.view.get_framebuffer_size()
+        self.video_width, self.video_height = self.view.get_framebuffer_size()
 
         self.video_writer: VideoWriter = VideoWriter.create_video_writer(self)
 
