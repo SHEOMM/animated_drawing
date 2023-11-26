@@ -45,7 +45,11 @@ def index():
     image_url = "https://little-studio.s3.amazonaws.com"
 
     for motion in motion_list:
-        response_dict[motion] = f"{image_url}/drawings/{ts}/{motion}.gif"
+        if motion == "zombie":
+            temporary = "wave_hello"
+            response_dict["wave_hello"] = f"{image_url}/drawings/{ts}/{temporary}.gif"
+        else:
+            response_dict[motion] = f"{image_url}/drawings/{ts}/{motion}.gif"
 
     for remove in remove_file_list:
         os.remove(remove)
