@@ -65,8 +65,11 @@ def upload_to_s3(s3_client, motion: str, ts: str, cur_path: str):
     image_to_animation(f'{cur_path}/static/input/{ts}.png', f'{cur_path}/static/output/{motion}/{ts}'
                        , f'{cur_path}/config/motion/{motion}.yaml'
                        , f'{cur_path}/config/retarget/fair1_ppf.yaml')
-    s3_url = f"drawings/{ts}/{motion}.gif"
+
     ai_generated_image = f'{cur_path}/static/output/{motion}/{ts}/video.gif'
+    if motion == "zombie":
+        motion = "wave_hello"
+    s3_url = f"drawings/{ts}/{motion}.gif"
     with open(ai_generated_image, mode='rb') as gif:
        s3_client.upload_fileobj(gif, 'little-studio', s3_url)
 
