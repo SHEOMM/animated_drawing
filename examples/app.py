@@ -3,7 +3,7 @@ import os
 import boto3
 import time
 
-from examples.image_to_animation import image_to_animation
+from examples.image_to_animation import image_to_animation, annotations_to_animation
 from config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 from PIL import Image
 from io import BytesIO
@@ -24,23 +24,19 @@ def index():
     image = Image.open(BytesIO(base64.b64decode(param['file'])))
     image.save(f'{cur_path}/static/input/{ts}.png', "PNG")
     print(ts)
-    # make subprocess in docker container have to option that "--cap-add=SYS_PRACTICE"
-    # it processes video in static/output/{ts}/video.gif
-    # if subprocess makes error in docker -> then just run image_to_animation function
-    # p = subprocess.run(["python3.8", "../animated_drawing/AnimatedDrawings-main/examples/image_to_animation.py",
-    #                     f'static/input/{ts}.png', f'static/output/{ts}'])
 
     remove_file_list.append(f'{cur_path}/static/input/{ts}.png')
     s3_client = S3_CLIENT
 
-    motion_list = ["dab", "jumping", "wave_hello"] # , "jesse_dance"]
+    motion_list = ["dab", "jumping", "wave_hello"] 
 
-    print("here")
-    for motion in motion_list:
-        output_path = f'{cur_path}/static/output/{motion}/{ts}'
-        os.makedirs(name=output_path, exist_ok=True)
-        remove_file_list.append(upload_to_s3(s3_client, motion, ts, cur_path))
-        remove_folder_list.append(output_path)
+    output_path = f'{cur_path}/static/output/{ts}'
+    os.makedirs(name=output_path, exist_ok=True)
+    remove_folder_list.append(output_path)
+    
+    remove_file_list.append(first_upload_to_s3(s3_client, "dab", ts, cur_path))
+    remove_file_list.append(remaining_upload_to_s3(s3_client, "jumping", ts, cur_path))
+    remove_file_list.append(remaining_upload_to_s3(s3_client, "wave_hello", ts, cur_path))
                  
     image_url = "https://little-studio.s3.amazonaws.com"
 
@@ -53,16 +49,29 @@ def index():
         clear_directory(remove)
         os.rmdir(remove)
 
-    print("last")
+    print("completed")
+    print(str(time.time()))
     return jsonify(response_dict)
 
-
-def upload_to_s3(s3_client, motion: str, ts: str, cur_path: str):
-    image_to_animation(f'{cur_path}/static/input/{ts}.png', f'{cur_path}/static/output/{motion}/{ts}'
+def first_upload_to_s3(s3_client, motion: str, ts: str, cur_path: str):
+    image_to_animation(f'{cur_path}/static/input/{ts}.png', f'{cur_path}/static/output/{ts}'
                        , f'{cur_path}/config/motion/{motion}.yaml'
                        , f'{cur_path}/config/retarget/fair1_ppf.yaml')
     s3_url = f"drawings/{ts}/{motion}.gif"
-    ai_generated_image = f'{cur_path}/static/output/{motion}/{ts}/video.gif'
+    ai_generated_image = f'{cur_path}/static/output/{ts}/video.gif'
+    with open(ai_generated_image, mode='rb') as gif:
+       s3_client.upload_fileobj(gif, 'little-studio', s3_url)
+
+    print(s3_url)
+    return ai_generated_image
+
+
+def remaining_upload_to_s3(s3_client, motion: str, ts: str, cur_path: str):
+    annotations_to_animation(f'{cur_path}/static/output/{ts}'
+                       , f'{cur_path}/config/motion/{motion}.yaml'
+                       , f'{cur_path}/config/retarget/fair1_ppf.yaml')
+    s3_url = f"drawings/{ts}/{motion}.gif"
+    ai_generated_image = f'{cur_path}/static/output/{ts}/video.gif'
     with open(ai_generated_image, mode='rb') as gif:
        s3_client.upload_fileobj(gif, 'little-studio', s3_url)
 
