@@ -45,7 +45,7 @@ def index():
     image_url = "https://little-studio.s3.amazonaws.com"
 
     for motion in motion_list:
-        response_dict[motion] = f"{image_url}/drawings/{motion}/{ts}"
+        response_dict[motion] = f"{image_url}/drawings/{ts}/{motion}.gif"
 
     for remove in remove_file_list:
         os.remove(remove)
@@ -54,7 +54,7 @@ def index():
         os.rmdir(remove)
 
     print("last")
-    return make_response(jsonify(response_dict), 200)
+    return jsonify(response_dict)
 
 
 def upload_to_s3(s3_client, motion: str, ts: str, cur_path: str):
