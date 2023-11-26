@@ -28,7 +28,7 @@ def index():
     remove_file_list.append(f'{cur_path}/static/input/{ts}.png')
     s3_client = S3_CLIENT
 
-    motion_list = ["dab", "jumping", "jumping_jacks"] 
+    motion_list = ["dab", "jumping", "wave_hello"] 
 
     output_path = f'{cur_path}/static/output/{ts}'
     os.makedirs(name=output_path, exist_ok=True)
@@ -36,7 +36,7 @@ def index():
     
     remove_file_list.append(first_upload_to_s3(s3_client, "dab", ts, cur_path))
     remaining_upload_to_s3(s3_client, "jumping", ts, cur_path)
-    remaining_upload_to_s3(s3_client, "jumping_jacks", ts, cur_path)
+    remaining_upload_to_s3(s3_client, "wave_hello", ts, cur_path)
 
     image_url = "https://little-studio.s3.amazonaws.com"
 
