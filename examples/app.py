@@ -21,7 +21,10 @@ def index():
     remove_folder_list = []
     response_dict = {}
     param = request.get_json()
+
     image = Image.open(BytesIO(base64.b64decode(param['file'])))
+    image_size = image.size
+    image = image.resize((int(image_size[0] * (0.5)), int(image_size[1] * (0.5))))
     image.save(f'{cur_path}/static/input/{ts}.png', "PNG")
     print(ts)
     # make subprocess in docker container have to option that "--cap-add=SYS_PRACTICE"
