@@ -48,11 +48,7 @@ def index():
     image_url = "https://little-studio.s3.amazonaws.com"
 
     for motion in motion_list:
-        if motion == "zombie":
-            temporary = "wave_hello"
-            response_dict["wave_hello"] = f"{image_url}/drawings/{ts}/{temporary}.gif"
-        else:
-            response_dict[motion] = f"{image_url}/drawings/{ts}/{motion}.gif"
+        response_dict[motion] = f"{image_url}/drawings/{ts}/{motion}.gif"
 
     for remove in remove_file_list:
         os.remove(remove)
@@ -70,8 +66,6 @@ def upload_to_s3(s3_client, motion: str, ts: str, cur_path: str):
                        , f'{cur_path}/config/retarget/fair1_ppf.yaml')
 
     ai_generated_image = f'{cur_path}/static/output/{motion}/{ts}/video.gif'
-    if motion == "zombie":
-        motion = "wave_hello"
     s3_url = f"drawings/{ts}/{motion}.gif"
     with open(ai_generated_image, mode='rb') as gif:
        s3_client.upload_fileobj(gif, 'little-studio', s3_url)
